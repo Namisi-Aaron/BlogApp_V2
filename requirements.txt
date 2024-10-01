@@ -1,1 +1,6 @@
 Flask
+Flask-WTF
+WTForms
+email_validator
+flask-sqlalchemy
+psycopg2-binary
