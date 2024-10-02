@@ -6,3 +6,4 @@ flask-sqlalchemy
 psycopg2-binary
 Flask-Bcrypt
 Flask-Login
+Pillow
