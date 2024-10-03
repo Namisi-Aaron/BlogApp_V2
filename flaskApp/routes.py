@@ -1,7 +1,7 @@
 import os
 from PIL import Image
 import secrets
-from flask import render_template, url_for, flash, redirect, request
+from flask import render_template, url_for, flash, redirect, request, abort
 from flaskApp import app, db, bcrypt
 from flaskApp.models import User, Blog
 from flaskApp.forms import RegistrationForm, LoginForm, UpdateAccountForm, BlogForm
@@ -110,4 +110,45 @@ def new_blog():
         db.session.commit()
         flash('Your blog has been created', 'success')
         return redirect(url_for('home'))
-    return render_template('create_blog.html', title='New Blog', form=form)
+    return render_template('create_blog.html',
+                           title='New Blog',
+                           form=form,
+                           legend='New Blog')
+
+@app.route("/blog/<int:blog_id>")
+def blog(blog_id):
+    blog = Blog.query.get_or_404(blog_id)
+    return render_template('blog.html', title=blog.title, blog=blog)
+
+@login_required
+@app.route("/blog/<int:blog_id>/update", methods=['POST', 'GET'])
+def update_blog(blog_id):
+    blog = Blog.query.get_or_404(blog_id)
+    if blog.author != current_user:
+        abort(403)
+    form = BlogForm()
+    if form.validate_on_submit():
+        blog.title = form.title.data
+        blog.content = form.content.data
+        db.session.commit()
+        flash('Your Blog has been Updated', 'success')
+        return redirect(url_for('blog', blog_id=blog.id))
+    elif request.method == 'GET':
+            form.title.data = blog.title
+            form.content.data = blog.content
+    return render_template('create_blog.html',
+                           title='Update Blog',
+                           form=form,
+                           legend='Update Blog')
+
+@login_required
+@app.route("/blog/<int:blog_id>/delete", methods=['POST'])
+def delete_blog(blog_id):
+    blog = Blog.query.get_or_404(blog_id)
+    if blog.author != current_user:
+        abort(403)
+    db.session.delete(blog)
+    db.session.commit()
+    flash('Your blog has been deleted', 'success')
+    return redirect(url_for('home'))
+
